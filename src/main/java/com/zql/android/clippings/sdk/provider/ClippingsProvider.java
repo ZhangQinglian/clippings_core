@@ -64,6 +64,17 @@ public class ClippingsProvider extends ContentProvider {
             case 1:
                 sortOrder = " " + ClippingContract.TABLE_CLIPPINGS_DATE;
                 SQLiteDatabase db = mDBHelper.getReadableDatabase();
+                if(selection == null){
+                    selection = " "+ ClippingContract.TABLE_CLIPPINGS_TYPE + "!=?";
+                }else {
+                    selection = selection + " "+ ClippingContract.TABLE_CLIPPINGS_TYPE + "!=?";
+                }
+                if(selectionArgs == null){
+                    selectionArgs = new String[]{String.valueOf(Clipping.K_CLIPPING_TYPE_BOOKMARK)};
+                }else {
+                    selectionArgs = Arrays.copyOf(selectionArgs,selectionArgs.length + 1);
+                    selectionArgs[selectionArgs.length-1] = String.valueOf(1);
+                }
                 return db.query(ClippingContract.TABLE_CLIPPINGS,projection,selection,selectionArgs,null,null,sortOrder);
             case 2:
 
