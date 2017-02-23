@@ -16,8 +16,13 @@
 
 package com.zql.android.clippings.sdk.parser;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 
+import com.zql.android.clippings.sdk.provider.ClippingContract;
 import com.zqlite.android.logly.Logly;
 
 import org.reactivestreams.Subscriber;
@@ -84,7 +89,7 @@ public class ClippingsParser {
      *
      * @param inputStream My Clippings.txt对应的InputStream
      */
-    public void parse(final InputStream inputStream) {
+    public void parse(final InputStream inputStream, Context context) {
         Flowable.create(new FlowableOnSubscribe<String>() {
             @Override
             public void subscribe(FlowableEmitter<String> e) throws Exception {
@@ -104,7 +109,7 @@ public class ClippingsParser {
                 }
                 e.onComplete();
             }
-        }, BackpressureStrategy.BUFFER).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe(new ClippingSubscriber());
+        }, BackpressureStrategy.BUFFER).observeOn(Schedulers.io()).subscribeOn(Schedulers.io()).subscribe(new ClippingSubscriber(context));
     }
 
     private class ClippingSubscriber implements Subscriber<String> {
@@ -115,6 +120,10 @@ public class ClippingsParser {
 
         private List<String> mRawData = new ArrayList<>();
 
+        private Context mContext;
+        public ClippingSubscriber(Context context){
+            mContext = context;
+        };
         @Override
         public void onSubscribe(Subscription s) {
             mSubscription = s;
@@ -141,9 +150,11 @@ public class ClippingsParser {
 
         @Override
         public void onComplete() {
-            Logly.d("=================  onComplete");
+            ContentValues contentValues = new ContentValues();
             for (Clipping clipping : mClippingList){
-                Logly.d(clipping.toString());
+                ContentResolver contentResolver = mContext.getContentResolver();
+                Uri u =  contentResolver.insert(ClippingContract.CLIPPINGS_URI,Clipping.getContentValues(contentValues,clipping));
+                Logly.d(u.toString());
             }
         }
     }
@@ -156,7 +167,8 @@ public class ClippingsParser {
         clipping.date = getDateTime(rawData.get(1));
         clipping.location = getLocation(rawData.get(1));
         clipping.content = getContent(rawData);
-        getDateTime(rawData.get(1));
+        clipping.md5 = Clipping.getMD5String(clipping);
+        clipping.status = Clipping.K_CLIPPING_STATUS_NORMAL;
         return clipping;
     }
 

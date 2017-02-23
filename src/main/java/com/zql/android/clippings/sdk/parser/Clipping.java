@@ -16,8 +16,15 @@
 
 package com.zql.android.clippings.sdk.parser;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.support.annotation.Nullable;
+
+import com.zql.android.clippings.sdk.provider.ClippingContract;
+
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * @author qinglian.zhang, created on 2017/2/21.
@@ -30,6 +37,26 @@ public class Clipping {
     public static final int K_CLIPPING_TYPE_LABEL = 0x01;
 
     public static final int K_CLIPPING_TYPE_NOTE = 0x02;
+
+    public static final int K_CLIPPING_STATUS_NORMAL = 0x01;
+
+    public static final int K_CLIPPING_STATUS_DELETED = 0x02;
+
+    private static MessageDigest MD5 ;
+
+    static {
+        try {
+            MD5 = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 在数据库中的id
+     */
+    public int id;
+
     /**
      * 书名
      */
@@ -66,8 +93,67 @@ public class Clipping {
      */
     public String content;
 
+    /**
+     * 该简报对应的md5
+     */
+    public String md5;
+
+    /**
+     * 简报的状态 <br />
+     * {@link #K_CLIPPING_STATUS_NORMAL} <br />
+     * {@link #K_CLIPPING_STATUS_DELETED}
+     */
+    public int status;
+
     @Override
     public String toString() {
         return title + " | " + author + " | " + location + " | " + type + " | " + date + " | \n" + content ;
+    }
+
+    public String getString(){
+        return title +  author + location +  type +  date + content ;
+    }
+
+    /**
+     * 获得clipping对应的ContentValues
+     * @param contentValues 可以为空
+     * @param clipping 需要转换的clipping
+     * @return
+     */
+    public static ContentValues getContentValues(@Nullable ContentValues contentValues, Clipping clipping){
+        if(contentValues == null){
+            contentValues = new ContentValues();
+        }else {
+            contentValues.clear();
+        }
+        contentValues.clear();
+        contentValues.put(ClippingContract.TABLE_CLIPPINGS_TITLE,clipping.title);
+        contentValues.put(ClippingContract.TABLE_CLIPPINGS_AUTHOR,clipping.author);
+        contentValues.put(ClippingContract.TABLE_CLIPPINGS_LOCATION,clipping.location);
+        contentValues.put(ClippingContract.TABLE_CLIPPINGS_DATE,clipping.date);
+        contentValues.put(ClippingContract.TABLE_CLIPPINGS_TYPE,clipping.type);
+        contentValues.put(ClippingContract.TABLE_CLIPPINGS_CONTENT,clipping.content);
+        contentValues.put(ClippingContract.TABLE_CLIPPINGS_MD5,clipping.md5);
+        contentValues.put(ClippingContract.TABLE_CLIPPINGS_STATUS,clipping.status);
+        return contentValues;
+    }
+
+    public static String getMD5String(Clipping clipping){
+        MD5.update(clipping.getString().getBytes());
+        return new BigInteger(1,MD5.digest()).toString(16);
+    }
+
+    public static Clipping getInstance(Cursor cursor){
+        Clipping clipping = new Clipping();
+        clipping.id = cursor.getInt(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_ID));
+        clipping.title = cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_TITLE));
+        clipping.author = cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_AUTHOR));
+        clipping.type = cursor.getInt(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_TYPE));
+        clipping.date = cursor.getLong(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_DATE));
+        clipping.content = cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_CONTENT));
+        clipping.location = cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_LOCATION));
+        clipping.status = cursor.getInt(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_STATUS));
+        clipping.md5 = cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_MD5));
+        return clipping;
     }
 }

@@ -18,22 +18,59 @@ package com.zql.android.clippings.sdk.provider;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+
+import com.zql.android.clippings.sdk.parser.Clipping;
+import com.zqlite.android.logly.Logly;
+
+import java.util.Arrays;
 
 /**
  * @author qinglian.zhang, created on 2017/2/22.
  */
 public class ClippingsProvider extends ContentProvider {
+
+    private final Logly.Tag kTag = new Logly.Tag(Logly.FLAG_THREAD_NAME,ClippingsProvider.class.getSimpleName(),Logly.DEBUG);
+
+    private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+    static {
+        sUriMatcher.addURI(ClippingContract.AUTHORITY,ClippingContract.CLIPPINGS_PATH,1);
+    }
+
+    private ClippingsDBHelper mDBHelper ;
     @Override
     public boolean onCreate() {
-        return false;
+        mDBHelper = new ClippingsDBHelper(getContext(),ClippingContract.DB_CLIPPINGS,null,1);
+        return true;
     }
 
     @Nullable
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+        Logly.d("***************** clippings provider query  ***********************");
+        Logly.d(kTag,uri.toString());
+        Logly.d(kTag, Arrays.toString(projection));
+        Logly.d(kTag,selection);
+        Logly.d(kTag,Arrays.toString(selectionArgs));
+        Logly.d(kTag,sortOrder);
+        switch (sUriMatcher.match(uri)){
+            case 1:
+                sortOrder = " " + ClippingContract.TABLE_CLIPPINGS_DATE;
+                SQLiteDatabase db = mDBHelper.getReadableDatabase();
+                return db.query(ClippingContract.TABLE_CLIPPINGS,projection,selection,selectionArgs,null,null,sortOrder);
+            case 2:
+
+                break;
+            default:
+                break;
+        }
         return null;
     }
 
@@ -46,6 +83,14 @@ public class ClippingsProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(Uri uri, ContentValues values) {
+        Logly.d("***************** clippings provider insert  ***********************");
+        int match = sUriMatcher.match(uri);
+        if(match == 1){
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            //Logly.d(kTag,values.toString());
+            long id = db.insert(ClippingContract.TABLE_CLIPPINGS,"",values);
+            return  Uri.withAppendedPath(ClippingContract.CLIPPINGS_URI,String.valueOf(id));
+        }
         return null;
     }
 
@@ -57,5 +102,39 @@ public class ClippingsProvider extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         return 0;
+    }
+
+    private class ClippingsDBHelper extends SQLiteOpenHelper{
+
+        private static final String TEXT_TYPE = " TEXT";
+        private static final String INTEGER_TYPE = " INTEGER";
+        private static final String COMMA_SEP = ",";
+        private final String kCreateClippingsTableSQL =
+                        "CREATE TABLE " + ClippingContract.TABLE_CLIPPINGS + " (" +
+                                ClippingContract.TABLE_CLIPPINGS_ID + INTEGER_TYPE +" PRIMARY KEY AUTOINCREMENT" + COMMA_SEP +
+                                ClippingContract.TABLE_CLIPPINGS_TITLE + TEXT_TYPE + COMMA_SEP +
+                                ClippingContract.TABLE_CLIPPINGS_AUTHOR + TEXT_TYPE + COMMA_SEP +
+                                ClippingContract.TABLE_CLIPPINGS_LOCATION + TEXT_TYPE + COMMA_SEP +
+                                ClippingContract.TABLE_CLIPPINGS_DATE + INTEGER_TYPE + COMMA_SEP +
+                                ClippingContract.TABLE_CLIPPINGS_TYPE + INTEGER_TYPE + COMMA_SEP +
+                                ClippingContract.TABLE_CLIPPINGS_CONTENT + TEXT_TYPE + COMMA_SEP +
+                                ClippingContract.TABLE_CLIPPINGS_MD5 + TEXT_TYPE + COMMA_SEP+
+                                ClippingContract.TABLE_CLIPPINGS_STATUS + INTEGER_TYPE +
+                        ")";
+
+        public ClippingsDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+            super(context, name, factory, version);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            Logly.d(kCreateClippingsTableSQL);
+            db.execSQL(kCreateClippingsTableSQL);
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        }
     }
 }
