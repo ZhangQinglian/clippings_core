@@ -42,6 +42,7 @@ public class ClippingsProvider extends ContentProvider {
 
     static {
         sUriMatcher.addURI(ClippingContract.AUTHORITY,ClippingContract.CLIPPINGS_PATH,1);
+        sUriMatcher.addURI(ClippingContract.AUTHORITY,ClippingContract.CLIPPINGS_PATH +"/#",2);
     }
 
     private ClippingsDBHelper mDBHelper ;
@@ -60,25 +61,26 @@ public class ClippingsProvider extends ContentProvider {
         Logly.d(kTag,selection);
         Logly.d(kTag,Arrays.toString(selectionArgs));
         Logly.d(kTag,sortOrder);
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
         switch (sUriMatcher.match(uri)){
             case 1:
                 sortOrder = " " + ClippingContract.TABLE_CLIPPINGS_DATE;
-                SQLiteDatabase db = mDBHelper.getReadableDatabase();
+
                 if(selection == null){
-                    selection = " "+ ClippingContract.TABLE_CLIPPINGS_TYPE + "!=?";
+                    selection = ClippingContract.CLIPPING_TYPE_SELECTION;
                 }else {
-                    selection = selection + " "+ ClippingContract.TABLE_CLIPPINGS_TYPE + "!=?";
+                    selection = selection + ClippingContract.CLIPPING_TYPE_SELECTION;
                 }
                 if(selectionArgs == null){
                     selectionArgs = new String[]{String.valueOf(Clipping.K_CLIPPING_TYPE_BOOKMARK)};
                 }else {
                     selectionArgs = Arrays.copyOf(selectionArgs,selectionArgs.length + 1);
-                    selectionArgs[selectionArgs.length-1] = String.valueOf(1);
+                    selectionArgs[selectionArgs.length-1] = String.valueOf(Clipping.K_CLIPPING_TYPE_BOOKMARK);
                 }
                 return db.query(ClippingContract.TABLE_CLIPPINGS,projection,selection,selectionArgs,null,null,sortOrder);
             case 2:
-
-                break;
+                String id = uri.getLastPathSegment();
+                return db.query(ClippingContract.TABLE_CLIPPINGS,projection,ClippingContract.CLIPPING_ID_SELECTION,new String[]{id},null,null,sortOrder);
             default:
                 break;
         }

@@ -53,4 +53,9 @@ public class ClippingContract {
             TABLE_CLIPPINGS_STATUS
     };
 
+
+    public static final String CLIPPING_TYPE_SELECTION = " "+ ClippingContract.TABLE_CLIPPINGS_TYPE + "!=?";
+
+    public static final String CLIPPING_ID_SELECTION = " " + ClippingContract.TABLE_CLIPPINGS_ID + "=?";
+
 }
