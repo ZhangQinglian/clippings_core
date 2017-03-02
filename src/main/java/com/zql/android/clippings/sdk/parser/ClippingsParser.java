@@ -16,10 +16,13 @@
 
 package com.zql.android.clippings.sdk.parser;
 
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.net.Uri;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 
 import com.zql.android.clippings.sdk.provider.ClippingContract;
@@ -63,6 +66,8 @@ public class ClippingsParser {
     private final char kLeftBracketsChar = '(';
 
     private final char kRightBracketsChar = ')';
+
+    public static final String CLIPPINGS_NAME = "My Clippings.txt";
 
     public final SimpleDateFormat kDateFormatZh = new SimpleDateFormat("yyyy年MM月dd日E ahh:mm:ss",Locale.CHINESE);
 
@@ -151,10 +156,19 @@ public class ClippingsParser {
         @Override
         public void onComplete() {
             ContentValues contentValues = new ContentValues();
+            ArrayList<ContentProviderOperation> operations = new ArrayList<>();
             for (Clipping clipping : mClippingList){
-                ContentResolver contentResolver = mContext.getContentResolver();
-                Uri u =  contentResolver.insert(ClippingContract.CLIPPINGS_URI,Clipping.getContentValues(contentValues,clipping));
-                Logly.d(u.toString());
+                ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(ClippingContract.CLIPPINGS_URI);
+                builder.withValues(Clipping.getContentValues(contentValues,clipping));
+                operations.add(builder.build());
+            }
+            ContentResolver contentResolver = mContext.getContentResolver();
+            try {
+                contentResolver.applyBatch(ClippingContract.AUTHORITY,operations);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            } catch (OperationApplicationException e) {
+                e.printStackTrace();
             }
         }
     }

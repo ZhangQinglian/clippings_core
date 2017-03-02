@@ -17,18 +17,24 @@
 package com.zql.android.clippings.sdk.provider;
 
 import android.content.ContentProvider;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.zql.android.clippings.sdk.parser.Clipping;
 import com.zqlite.android.logly.Logly;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -102,10 +108,12 @@ public class ClippingsProvider extends ContentProvider {
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
             //Logly.d(kTag,values.toString());
             long id = db.insert(ClippingContract.TABLE_CLIPPINGS,"",values);
+            getContext().getContentResolver().notifyChange(ClippingContract.CLIPPINGS_URI,null);
             return  Uri.withAppendedPath(ClippingContract.CLIPPINGS_URI,String.valueOf(id));
         }
         return null;
     }
+
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
