@@ -18,6 +18,8 @@ package com.zql.android.clippings.sdk.provider;
 
 import android.net.Uri;
 
+import com.zql.android.clippings.sdk.parser.Clipping;
+
 /**
  * @author qinglian.zhang, created on 2017/2/22.
  */
@@ -54,8 +56,13 @@ public class ClippingContract {
     };
 
 
-    public static final String CLIPPING_TYPE_SELECTION = " "+ ClippingContract.TABLE_CLIPPINGS_TYPE + "!=?";
+    public static final String CLIPPING_TYPE_SELECTION = ClippingContract.TABLE_CLIPPINGS_TYPE + "!=?";
 
-    public static final String CLIPPING_ID_SELECTION = " " + ClippingContract.TABLE_CLIPPINGS_ID + "=?";
+    public static final String CLIPPING_ID_SELECTION = ClippingContract.TABLE_CLIPPINGS_ID + "=?";
+
+    public static final String CLIPPING_NOTE_SELECTION = " " + ClippingContract.TABLE_CLIPPINGS_TITLE + "=? and " +
+            ClippingContract.TABLE_CLIPPINGS_AUTHOR + "=? and " +
+            ClippingContract.TABLE_CLIPPINGS_LOCATION + "=? and " +
+            ClippingContract.TABLE_CLIPPINGS_TYPE + "=?";
 
 }

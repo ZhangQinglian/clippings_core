@@ -69,7 +69,7 @@ public class ClippingsProvider extends ContentProvider {
                 if(selection == null){
                     selection = ClippingContract.CLIPPING_TYPE_SELECTION;
                 }else {
-                    selection = selection + ClippingContract.CLIPPING_TYPE_SELECTION;
+                    selection = selection + " and " + ClippingContract.CLIPPING_TYPE_SELECTION;
                 }
                 if(selectionArgs == null){
                     selectionArgs = new String[]{String.valueOf(Clipping.K_CLIPPING_TYPE_BOOKMARK)};

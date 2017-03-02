@@ -25,6 +25,9 @@ import com.zql.android.clippings.sdk.provider.ClippingContract;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * @author qinglian.zhang, created on 2017/2/21.
@@ -114,6 +117,12 @@ public class Clipping {
         return title +  author + location +  type +  date + content ;
     }
 
+    public String getLocaleDate(){
+        SimpleDateFormat saf = new SimpleDateFormat("MM/dd/yyyy E ahh:mm ", Locale.CHINESE);
+        return saf.format(new Date(date));
+    }
+
+
     /**
      * 获得clipping对应的ContentValues
      * @param contentValues 可以为空
@@ -150,10 +159,29 @@ public class Clipping {
         clipping.author = cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_AUTHOR));
         clipping.type = cursor.getInt(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_TYPE));
         clipping.date = cursor.getLong(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_DATE));
-        clipping.content = cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_CONTENT));
+        clipping.content = "        " + cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_CONTENT));
         clipping.location = cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_LOCATION));
         clipping.status = cursor.getInt(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_STATUS));
         clipping.md5 = cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_MD5));
         return clipping;
     }
+
+    public static String getNoteLocation(Clipping clipping){
+        if(clipping.type == Clipping.K_CLIPPING_TYPE_LABEL){
+            String[] tmp = clipping.location.split("-");
+            return "#" + tmp[1];
+        }
+        return "";
+    }
+
+    public static String getLocationAndType(Clipping clipping){
+        if(clipping == null) return "";
+        return clipping.location + (clipping.type==Clipping.K_CLIPPING_TYPE_LABEL?" - 摘要":" - 笔记");
+    }
+
+    public static String getNote(Clipping clipping){
+        if(clipping == null) return "";
+        return " \" " + clipping.content.trim() + " \" ";
+    }
+
 }
