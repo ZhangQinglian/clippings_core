@@ -26,6 +26,7 @@ import android.os.RemoteException;
 import android.support.annotation.NonNull;
 
 import com.zql.android.clippings.sdk.provider.ClippingContract;
+import com.zql.android.clippings.sdk.provider.ClippingsProvider;
 import com.zqlite.android.logly.Logly;
 
 import org.reactivestreams.Subscriber;
@@ -164,7 +165,7 @@ public class ClippingsParser {
             }
             ContentResolver contentResolver = mContext.getContentResolver();
             try {
-                contentResolver.applyBatch(ClippingContract.AUTHORITY,operations);
+                contentResolver.applyBatch(ClippingsProvider.AUTHORITY,operations);
             } catch (RemoteException e) {
                 e.printStackTrace();
             } catch (OperationApplicationException e) {

@@ -18,7 +18,10 @@ package com.zql.android.clippings.sdk.provider;
 
 import android.net.Uri;
 
-import com.zql.android.clippings.sdk.parser.Clipping;
+
+import java.util.List;
+
+import static com.zql.android.clippings.sdk.provider.ClippingsProvider.AUTHORITY;
 
 /**
  * @author qinglian.zhang, created on 2017/2/22.
@@ -39,7 +42,7 @@ public class ClippingContract {
     public static final String TABLE_CLIPPINGS_STATUS = "_status";
 
     //---------------------------- clippings provider  ------------------------------------//
-    public static final String AUTHORITY = "com.zql.android.clippings.sdk.provider";
+
     public static final String CLIPPINGS_PATH = "clippings";
     public static final Uri CLIPPINGS_URI = Uri.parse("content://" + AUTHORITY + "/" + CLIPPINGS_PATH);
 
@@ -65,4 +68,15 @@ public class ClippingContract {
             ClippingContract.TABLE_CLIPPINGS_LOCATION + "=? and " +
             ClippingContract.TABLE_CLIPPINGS_TYPE + "=?";
 
+    public static String getMd5Selection(List<String> md5s){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0;i<md5s.size() ;i++){
+            if(i < md5s.size()  -1){
+                sb.append(" ").append(ClippingContract.TABLE_CLIPPINGS_MD5).append("=? || ");
+            }else {
+                sb.append(" ").append(ClippingContract.TABLE_CLIPPINGS_MD5).append("=?");
+            }
+        }
+        return sb.toString();
+    }
 }

@@ -17,24 +17,18 @@
 package com.zql.android.clippings.sdk.provider;
 
 import android.content.ContentProvider;
-import android.content.ContentProviderOperation;
-import android.content.ContentProviderResult;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.zql.android.clippings.sdk.parser.Clipping;
 import com.zqlite.android.logly.Logly;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -42,13 +36,16 @@ import java.util.Arrays;
  */
 public class ClippingsProvider extends ContentProvider {
 
+    public static final String AUTHORITY = "com.zql.android.clippings.sdk.provider";
+
     private final Logly.Tag kTag = new Logly.Tag(Logly.FLAG_THREAD_NAME,ClippingsProvider.class.getSimpleName(),Logly.DEBUG);
 
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
-        sUriMatcher.addURI(ClippingContract.AUTHORITY,ClippingContract.CLIPPINGS_PATH,1);
-        sUriMatcher.addURI(ClippingContract.AUTHORITY,ClippingContract.CLIPPINGS_PATH +"/#",2);
+        sUriMatcher.addURI(AUTHORITY,ClippingContract.CLIPPINGS_PATH,1);
+        sUriMatcher.addURI(AUTHORITY,ClippingContract.CLIPPINGS_PATH +"/#",2);
+        sUriMatcher.addURI(AUTHORITY,LabelContract.LABEL_PATH,10);
     }
 
     private ClippingsDBHelper mDBHelper ;
@@ -87,6 +84,8 @@ public class ClippingsProvider extends ContentProvider {
             case 2:
                 String id = uri.getLastPathSegment();
                 return db.query(ClippingContract.TABLE_CLIPPINGS,projection,ClippingContract.CLIPPING_ID_SELECTION,new String[]{id},null,null,sortOrder);
+            case 10:
+                return db.query(LabelContract.TABLE_LABEL,projection,selection,selectionArgs,null,null,sortOrder);
             default:
                 break;
         }
@@ -104,19 +103,32 @@ public class ClippingsProvider extends ContentProvider {
     public Uri insert(Uri uri, ContentValues values) {
         Logly.d("***************** clippings provider insert  ***********************");
         int match = sUriMatcher.match(uri);
-        if(match == 1){
-            SQLiteDatabase db = mDBHelper.getWritableDatabase();
-            //Logly.d(kTag,values.toString());
-            long id = db.insert(ClippingContract.TABLE_CLIPPINGS,"",values);
-            getContext().getContentResolver().notifyChange(ClippingContract.CLIPPINGS_URI,null);
-            return  Uri.withAppendedPath(ClippingContract.CLIPPINGS_URI,String.valueOf(id));
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+        switch (match){
+            case 1:
+                //Logly.d(kTag,values.toString());
+                long id = db.insert(ClippingContract.TABLE_CLIPPINGS,"",values);
+                getContext().getContentResolver().notifyChange(ClippingContract.CLIPPINGS_URI,null);
+                return  Uri.withAppendedPath(ClippingContract.CLIPPINGS_URI,String.valueOf(id));
+            case 10:
+                getContext().getContentResolver().notifyChange(LabelContract.LABEL_URI,null);
+                long labelId =  db.insert(LabelContract.TABLE_LABEL,"",values);
+                return Uri.withAppendedPath(LabelContract.LABEL_URI,String.valueOf(labelId));
+
         }
+        db.close();
         return null;
     }
 
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
+        int match = sUriMatcher.match(uri);
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+        switch (match){
+            case 10:
+                return db.delete(LabelContract.TABLE_LABEL,selection,selectionArgs);
+        }
         return 0;
     }
 
@@ -143,6 +155,13 @@ public class ClippingsProvider extends ContentProvider {
                                 ClippingContract.TABLE_CLIPPINGS_STATUS + INTEGER_TYPE +
                         ")";
 
+        private final String kCreateLabelTableSQL =
+                "CREATE TABLE " + LabelContract.TABLE_LABEL + " (" +
+                        LabelContract.TABLE_LABEL_ID + INTEGER_TYPE +" PRIMARY KEY AUTOINCREMENT" + COMMA_SEP +
+                        LabelContract.TABLE_LABEL_MD5 + TEXT_TYPE + COMMA_SEP +
+                        LabelContract.TABLE_LABEL_LABEL + TEXT_TYPE +
+                        ")";
+
         public ClippingsDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
             super(context, name, factory, version);
         }
@@ -151,6 +170,7 @@ public class ClippingsProvider extends ContentProvider {
         public void onCreate(SQLiteDatabase db) {
             Logly.d(kCreateClippingsTableSQL);
             db.execSQL(kCreateClippingsTableSQL);
+            db.execSQL(kCreateLabelTableSQL);
         }
 
         @Override
