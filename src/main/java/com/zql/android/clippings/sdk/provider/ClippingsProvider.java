@@ -52,7 +52,7 @@ public class ClippingsProvider extends ContentProvider {
     private ClippingsDBHelper mDBHelper ;
     @Override
     public boolean onCreate() {
-        mDBHelper = new ClippingsDBHelper(getContext(),ClippingContract.DB_CLIPPINGS,null,1);
+        mDBHelper = new ClippingsDBHelper(getContext(),ClippingContract.DB_CLIPPINGS,null,2);
         return true;
     }
 
@@ -135,13 +135,23 @@ public class ClippingsProvider extends ContentProvider {
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
         switch (match){
             case 10:
-                return db.delete(LabelContract.TABLE_LABEL,selection,selectionArgs);
+                int result =  db.delete(LabelContract.TABLE_LABEL,selection,selectionArgs);
+                getContext().getContentResolver().notifyChange(ClippingContract.CLIPPINGS_URI,null);
+                return result;
         }
         return 0;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+        int match = sUriMatcher.match(uri);
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
+        switch (match){
+            case 1:
+                int result =  db.update(ClippingContract.TABLE_CLIPPINGS,values,selection,selectionArgs);
+                getContext().getContentResolver().notifyChange(ClippingContract.CLIPPINGS_URI,null);
+                return result;
+        }
         return 0;
     }
 
@@ -203,7 +213,9 @@ public class ClippingsProvider extends ContentProvider {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+            if(newVersion == 2){
+                db.execSQL("ALTER TABLE " + ClippingContract.TABLE_CLIPPINGS + " ADD " + ClippingContract.TABLE_CLIPPINGS_FAVOURITE + INTEGER_TYPE);
+            }
         }
     }
 }

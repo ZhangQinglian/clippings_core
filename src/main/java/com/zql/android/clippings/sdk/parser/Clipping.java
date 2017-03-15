@@ -45,6 +45,10 @@ public class Clipping {
 
     public static final int K_CLIPPING_STATUS_DELETED = 0x02;
 
+    public static final int K_CLIPPINGS_FAVOURITE = 1;
+
+    public static final int K_CLIPPINGS_UN_FAVOURITE = 2;
+
     private static MessageDigest MD5 ;
 
     static {
@@ -108,6 +112,13 @@ public class Clipping {
      */
     public int status;
 
+    /**
+     * 简报是否被用户喜欢 <br/ >
+     * {@link #K_CLIPPINGS_FAVOURITE} <br />
+     * {@link #K_CLIPPINGS_UN_FAVOURITE}
+     */
+    public int favourite;
+
     @Override
     public String toString() {
         return title + " | " + author + " | " + location + " | " + type + " | " + date + " | \n" + content ;
@@ -144,6 +155,7 @@ public class Clipping {
         contentValues.put(ClippingContract.TABLE_CLIPPINGS_CONTENT,clipping.content);
         contentValues.put(ClippingContract.TABLE_CLIPPINGS_MD5,clipping.md5);
         contentValues.put(ClippingContract.TABLE_CLIPPINGS_STATUS,clipping.status);
+        contentValues.put(ClippingContract.TABLE_CLIPPINGS_FAVOURITE,clipping.favourite);
         return contentValues;
     }
 
@@ -163,6 +175,7 @@ public class Clipping {
         clipping.location = cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_LOCATION));
         clipping.status = cursor.getInt(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_STATUS));
         clipping.md5 = cursor.getString(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_MD5));
+        clipping.favourite = cursor.getInt(cursor.getColumnIndex(ClippingContract.TABLE_CLIPPINGS_FAVOURITE));
         return clipping;
     }
 

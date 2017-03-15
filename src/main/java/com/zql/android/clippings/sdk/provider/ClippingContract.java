@@ -40,6 +40,7 @@ public class ClippingContract {
     public static final String TABLE_CLIPPINGS_CONTENT= "_content";
     public static final String TABLE_CLIPPINGS_MD5 = "_md5";
     public static final String TABLE_CLIPPINGS_STATUS = "_status";
+    public static final String TABLE_CLIPPINGS_FAVOURITE = "_favourite";
 
     //---------------------------- clippings provider  ------------------------------------//
 
@@ -55,7 +56,8 @@ public class ClippingContract {
             TABLE_CLIPPINGS_DATE,
             TABLE_CLIPPINGS_CONTENT,
             TABLE_CLIPPINGS_MD5,
-            TABLE_CLIPPINGS_STATUS
+            TABLE_CLIPPINGS_STATUS,
+            TABLE_CLIPPINGS_FAVOURITE
     };
 
 
