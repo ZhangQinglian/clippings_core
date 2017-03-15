@@ -30,6 +30,7 @@ import com.zql.android.clippings.sdk.parser.Clipping;
 import com.zqlite.android.logly.Logly;
 
 import java.util.Arrays;
+import java.util.concurrent.Executors;
 
 /**
  * @author qinglian.zhang, created on 2017/2/22.
@@ -107,16 +108,23 @@ public class ClippingsProvider extends ContentProvider {
         switch (match){
             case 1:
                 //Logly.d(kTag,values.toString());
+                String md5 = values.getAsString(ClippingContract.TABLE_CLIPPINGS_MD5);
+                if(existByMd5(md5,db)) {
+                    db.close();
+                    return ClippingContract.CLIPPINGS_URI;
+                }
                 long id = db.insert(ClippingContract.TABLE_CLIPPINGS,"",values);
                 getContext().getContentResolver().notifyChange(ClippingContract.CLIPPINGS_URI,null);
+                db.close();
                 return  Uri.withAppendedPath(ClippingContract.CLIPPINGS_URI,String.valueOf(id));
             case 10:
                 getContext().getContentResolver().notifyChange(LabelContract.LABEL_URI,null);
                 long labelId =  db.insert(LabelContract.TABLE_LABEL,"",values);
+                db.close();
                 return Uri.withAppendedPath(LabelContract.LABEL_URI,String.valueOf(labelId));
 
         }
-        db.close();
+
         return null;
     }
 
@@ -137,6 +145,26 @@ public class ClippingsProvider extends ContentProvider {
         return 0;
     }
 
+
+    private boolean existByMd5(String md5,SQLiteDatabase sqLiteDatabase){
+        Cursor cursor = sqLiteDatabase.query(ClippingContract.TABLE_CLIPPINGS,ClippingContract.PROJECTION_CLIPPINGS_ALL,LabelContract.LABEL_SELECTION_MD5,new String[]{md5},null,null,null);
+        if(cursor != null){
+            try {
+                if(cursor.getCount()>0) {
+                    return true;
+                }else {
+                    return false;
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+                return false;
+            }finally {
+                cursor.close();
+            }
+        }else {
+            return false;
+        }
+    }
     private class ClippingsDBHelper extends SQLiteOpenHelper{
 
         private static final String TEXT_TYPE = " TEXT";
