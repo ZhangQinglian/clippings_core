@@ -110,17 +110,14 @@ public class ClippingsProvider extends ContentProvider {
                 //Logly.d(kTag,values.toString());
                 String md5 = values.getAsString(ClippingContract.TABLE_CLIPPINGS_MD5);
                 if(existByMd5(md5,db)) {
-                    db.close();
                     return ClippingContract.CLIPPINGS_URI;
                 }
                 long id = db.insert(ClippingContract.TABLE_CLIPPINGS,"",values);
                 getContext().getContentResolver().notifyChange(ClippingContract.CLIPPINGS_URI,null);
-                db.close();
                 return  Uri.withAppendedPath(ClippingContract.CLIPPINGS_URI,String.valueOf(id));
             case 10:
                 getContext().getContentResolver().notifyChange(LabelContract.LABEL_URI,null);
                 long labelId =  db.insert(LabelContract.TABLE_LABEL,"",values);
-                db.close();
                 return Uri.withAppendedPath(LabelContract.LABEL_URI,String.valueOf(labelId));
 
         }
@@ -190,7 +187,8 @@ public class ClippingsProvider extends ContentProvider {
                                 ClippingContract.TABLE_CLIPPINGS_TYPE + INTEGER_TYPE + COMMA_SEP +
                                 ClippingContract.TABLE_CLIPPINGS_CONTENT + TEXT_TYPE + COMMA_SEP +
                                 ClippingContract.TABLE_CLIPPINGS_MD5 + TEXT_TYPE + COMMA_SEP+
-                                ClippingContract.TABLE_CLIPPINGS_STATUS + INTEGER_TYPE +
+                                ClippingContract.TABLE_CLIPPINGS_STATUS + INTEGER_TYPE + COMMA_SEP +
+                                ClippingContract.TABLE_CLIPPINGS_FAVOURITE + INTEGER_TYPE +
                         ")";
 
         private final String kCreateLabelTableSQL =
@@ -213,6 +211,7 @@ public class ClippingsProvider extends ContentProvider {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            Logly.d("=================== oldversion = " + oldVersion + " newVersion = " + newVersion);
             if(newVersion == 2){
                 db.execSQL("ALTER TABLE " + ClippingContract.TABLE_CLIPPINGS + " ADD " + ClippingContract.TABLE_CLIPPINGS_FAVOURITE + INTEGER_TYPE);
             }
