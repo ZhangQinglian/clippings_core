@@ -65,7 +65,7 @@ public class ClippingContract {
 
     public static final String CLIPPING_ID_SELECTION = ClippingContract.TABLE_CLIPPINGS_ID + "=?";
 
-
+    public static final String CLIPPING_FAVOURITE_SELECTION = ClippingContract.TABLE_CLIPPINGS_FAVOURITE + "=?";
 
     public static final String CLIPPING_NOTE_SELECTION = " " + ClippingContract.TABLE_CLIPPINGS_TITLE + "=? and " +
             ClippingContract.TABLE_CLIPPINGS_AUTHOR + "=? and " +
